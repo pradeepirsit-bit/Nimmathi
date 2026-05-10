@@ -16,10 +16,10 @@
   <style>
     :root{
       /* Calm, grounding palette */
-      --bg: #f3f6f5;            /* very soft off-white */
-      --card: #ffffff;          /* card background */
-      --muted: #6b7280;         /* muted text */
-      --accent: #4b8f8a;        /* soft teal */
+      --bg: #f3f6f5;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent: #4b8f8a;
       --accent-600: #3a7a76;
       --success: #2f9d7a;
       --danger: #e06a6a;
@@ -332,24 +332,16 @@
       </div>
     </header>
 
+    <!-- Layout changed: Journal and Emotion separated on the left, Insights on the right -->
     <div class="layout">
-      <!-- LEFT: Journal + Inputs -->
-      <section class="card" aria-labelledby="journalHeading">
+      <!-- LEFT COLUMN: Journal (text + tags + actions) -->
+      <section class="card journal-card" aria-labelledby="journalHeading">
         <h2 id="journalHeading">Journal</h2>
         <div class="journal-area">
           <textarea id="entryText" placeholder="Write a short journal entry — capture thoughts, events, or feelings. Use Ctrl/Cmd+Enter to save." aria-label="Journal entry"></textarea>
 
-          <div class="row" role="group" aria-label="Entry controls">
-            <div class="mood-select" aria-label="Mood selection" role="radiogroup">
-              <button class="mood-btn" data-value="1" aria-pressed="false" title="Very low">😞</button>
-              <button class="mood-btn" data-value="2" aria-pressed="false" title="Low">😕</button>
-              <button class="mood-btn active" data-value="3" aria-pressed="true" title="Neutral">😐</button>
-              <button class="mood-btn" data-value="4" aria-pressed="false" title="Good">🙂</button>
-              <button class="mood-btn" data-value="5" aria-pressed="false" title="Very good">😄</button>
-            </div>
-
+          <div class="row">
             <input id="tagInput" class="tagInput" placeholder="Add tags (comma separated) — e.g., work, family" aria-label="Tags input"/>
-
             <div class="actions" role="group" aria-label="Actions">
               <button id="saveBtn" class="btn primary" title="Save entry">Save</button>
               <button id="clearBtn" class="btn ghost" title="Clear draft">Clear</button>
@@ -360,7 +352,20 @@
         </div>
       </section>
 
-      <!-- RIGHT: Insights -->
+      <!-- LEFT COLUMN: Emotion (separate card) -->
+      <section class="card emotion-card" aria-labelledby="emotionHeading">
+        <h2 id="emotionHeading">Emotion</h2>
+        <div class="mood-select" role="radiogroup" aria-label="Mood selection" style="margin-top:10px">
+          <button class="mood-btn" data-value="1" aria-pressed="false" title="Very low">😞</button>
+          <button class="mood-btn" data-value="2" aria-pressed="false" title="Low">😕</button>
+          <button class="mood-btn active" data-value="3" aria-pressed="true" title="Neutral">😐</button>
+          <button class="mood-btn" data-value="4" aria-pressed="false" title="Good">🙂</button>
+          <button class="mood-btn" data-value="5" aria-pressed="false" title="Very good">😄</button>
+        </div>
+        <div class="small muted" style="margin-top:8px">Select how you feel before saving your entry</div>
+      </section>
+
+      <!-- RIGHT: Insights (unchanged) -->
       <aside class="insights" aria-labelledby="insightsHeading">
         <h2 id="insightsHeading" style="display:none">Insights</h2>
 
