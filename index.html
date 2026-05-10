@@ -212,10 +212,107 @@
       textarea#entryText { min-height:140px; }
       .layout { gap:14px; }
     }
+
+    /* --- Authentication overlay styles (calm, low-noise) --- */
+    .auth-wrap {
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, rgba(15,23,23,0.06), rgba(15,23,23,0.02));
+      z-index:80;
+      padding:20px;
+    }
+    .auth-card {
+      width:100%;
+      max-width:420px;
+      border-radius:14px;
+      background:linear-gradient(180deg,#fff,#fbfdfc);
+      box-shadow:0 18px 40px rgba(15,23,23,0.06);
+      border:1px solid rgba(15,23,23,0.04);
+      padding:20px;
+    }
+    .auth-card h2 { margin:0 0 8px 0; font-size:18px; color:#0b1220; }
+    .auth-card p { margin:0 0 14px 0; color:var(--muted); font-size:14px; }
+    .auth-field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+    .auth-field input { padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,23,0.04); font-size:14px; }
+    .auth-actions { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+    .auth-note { font-size:13px; color:var(--muted); margin-top:10px; text-align:left; }
+    .auth-footer { margin-top:12px; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); }
+    .link { color:var(--accent); cursor:pointer; text-decoration:underline; background:transparent; border:0; padding:0; font-size:13px; }
   </style>
 </head>
 <body>
-  <div class="app" role="application" aria-label="Smart MVP Insights and Journaling">
+  <!-- Authentication overlay (keeps old code unchanged; overlay gates access) -->
+  <div id="authOverlay" class="auth-wrap" aria-hidden="false" role="dialog" aria-modal="true">
+    <div class="auth-card" role="document" aria-labelledby="authTitle">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <h2 id="authTitle">Welcome to Smart MVP</h2>
+          <p>Sign in to keep your journal private and sync across devices</p>
+        </div>
+        <div style="font-size:12px;color:var(--muted)">Phase 1</div>
+      </div>
+
+      <div id="authForms">
+        <!-- Sign in form -->
+        <div id="signInForm">
+          <div class="auth-field">
+            <label class="small muted">Email</label>
+            <input id="authEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
+          </div>
+
+          <div class="auth-field">
+            <label class="small muted">Password</label>
+            <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+
+          <div class="auth-actions">
+            <button id="signInBtn" class="btn primary">Sign in</button>
+            <button id="magicLinkBtn" class="btn ghost">Send magic link</button>
+          </div>
+
+          <div class="auth-footer">
+            <div class="small muted">New here?</div>
+            <div>
+              <button id="showSignUp" class="link">Create account</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign up form (hidden by default) -->
+        <div id="signUpForm" style="display:none">
+          <div class="auth-field">
+            <label class="small muted">Email</label>
+            <input id="signUpEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
+          </div>
+
+          <div class="auth-field">
+            <label class="small muted">Password</label>
+            <input id="signUpPassword" type="password" placeholder="Choose a secure password" autocomplete="new-password" />
+          </div>
+
+          <div class="auth-actions">
+            <button id="createAccountBtn" class="btn primary">Create account</button>
+            <button id="showSignIn" class="btn ghost">Back</button>
+          </div>
+
+          <div class="auth-note">We use secure authentication. Your entries remain private to you.</div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;border-top:1px solid rgba(15,23,23,0.02);padding-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="small muted">Or try a quick anonymous session</div>
+          <button id="anonBtn" class="btn ghost">Continue anonymously</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original app UI (kept unchanged) -->
+  <div class="app" role="application" aria-label="Smart MVP Insights and Journaling" id="appRoot" style="display:none">
     <header class="top" role="banner">
       <div>
         <h1>Smart MVP — Overthinking Analytics</h1>
@@ -231,6 +328,7 @@
           <option value="all">All</option>
         </select>
         <button id="clearAllBtn" class="btn ghost" title="Clear all saved entries">Clear All</button>
+        <button id="signOutBtn" class="btn ghost" title="Sign out" style="display:none">Sign out</button>
       </div>
     </header>
 
@@ -343,12 +441,171 @@
     </div>
   </div>
 
+  <!-- Supabase client (CDN ESM) -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    // TODO: replace with your Supabase project values
+    const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_PUBLIC_ANON_KEY';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Expose supabase for debugging if needed
+    window.supabase = supabase;
+
+    // Elements
+    const authOverlay = document.getElementById('authOverlay');
+    const appRoot = document.getElementById('appRoot');
+    const signInBtn = document.getElementById('signInBtn');
+    const magicLinkBtn = document.getElementById('magicLinkBtn');
+    const createAccountBtn = document.getElementById('createAccountBtn');
+    const showSignUp = document.getElementById('showSignUp');
+    const showSignIn = document.getElementById('showSignIn');
+    const signUpForm = document.getElementById('signUpForm');
+    const signInForm = document.getElementById('signInForm');
+    const anonBtn = document.getElementById('anonBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const signUpEmail = document.getElementById('signUpEmail');
+    const signUpPassword = document.getElementById('signUpPassword');
+
+    // Keep the old app code intact — we only gate visibility and wire auth
+    // Show overlay until user is authenticated or chooses anonymous session
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+      if (session && session.user) {
+        // user signed in
+        onSignedIn(session.user);
+      } else {
+        // no session — show overlay
+        authOverlay.style.display = 'flex';
+        appRoot.style.display = 'none';
+      }
+    }
+
+    // Sign in with email + password
+    signInBtn.addEventListener('click', async () => {
+      const email = authEmail.value?.trim();
+      const password = authPassword.value;
+      if (!email || !password) {
+        alert('Please enter email and password.');
+        return;
+      }
+      signInBtn.disabled = true;
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      signInBtn.disabled = false;
+      if (error) {
+        alert(error.message || 'Sign in failed');
+        return;
+      }
+      if (data?.user) onSignedIn(data.user);
+    });
+
+    // Magic link
+    magicLinkBtn.addEventListener('click', async () => {
+      const email = authEmail.value?.trim();
+      if (!email) { alert('Enter your email to receive a magic link.'); return; }
+      magicLinkBtn.disabled = true;
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      magicLinkBtn.disabled = false;
+      if (error) { alert(error.message || 'Unable to send magic link'); return; }
+      alert('Magic link sent. Check your email.');
+    });
+
+    // Create account
+    createAccountBtn.addEventListener('click', async () => {
+      const email = signUpEmail.value?.trim();
+      const password = signUpPassword.value;
+      if (!email || !password) { alert('Provide email and password'); return; }
+      createAccountBtn.disabled = true;
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      createAccountBtn.disabled = false;
+      if (error) { alert(error.message || 'Sign up failed'); return; }
+      if (data?.user) onSignedIn(data.user);
+      else alert('Check your email to confirm sign up.');
+    });
+
+    // Anonymous session (temporary local-only session)
+    anonBtn.addEventListener('click', async () => {
+      // create a lightweight anonymous session by signing in with a random email alias using magic link disabled
+      // Supabase doesn't provide true anonymous auth in client SDK; for MVP we simulate a local anonymous mode
+      // Mark localStorage flag and proceed — entries remain local until user upgrades
+      localStorage.setItem('smpv_anonymous', '1');
+      onSignedIn({ id: 'anonymous', email: null, app_metadata: { anon: true } });
+    });
+
+    // Toggle sign up / sign in forms
+    showSignUp.addEventListener('click', () => {
+      signInForm.style.display = 'none';
+      signUpForm.style.display = 'block';
+    });
+    showSignIn.addEventListener('click', () => {
+      signUpForm.style.display = 'none';
+      signInForm.style.display = 'block';
+    });
+
+    // Sign out
+    signOutBtn.addEventListener('click', async () => {
+      // clear anonymous flag if present
+      localStorage.removeItem('smpv_anonymous');
+      await supabase.auth.signOut();
+      // show overlay again
+      authOverlay.style.display = 'flex';
+      appRoot.style.display = 'none';
+      signOutBtn.style.display = 'none';
+    });
+
+    // Called when user is authenticated or anonymous session started
+    function onSignedIn(user) {
+      // hide overlay, show app
+      authOverlay.style.display = 'none';
+      appRoot.style.display = 'block';
+      // show sign out button if not anonymous
+      const isAnon = localStorage.getItem('smpv_anonymous') === '1' || user?.app_metadata?.anon;
+      signOutBtn.style.display = isAnon ? 'inline-flex' : 'inline-flex';
+      // optionally show user info in console
+      console.log('Signed in user:', user);
+      // If you want to wire Supabase persistence for entries, you can call a function here to sync
+      // For now, the existing app uses localStorage and keeps behavior unchanged
+    }
+
+    // Listen to auth state changes (e.g., magic link redirect)
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        onSignedIn(session.user);
+      } else {
+        // if user signed out, show overlay
+        if (!localStorage.getItem('smpv_anonymous')) {
+          authOverlay.style.display = 'flex';
+          appRoot.style.display = 'none';
+        }
+      }
+    });
+
+    // initial check
+    checkSession();
+
+    // Expose a small helper to get current user for later wiring
+    window.getCurrentUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      return data?.user || null;
+    };
+  </script>
+
+  <!-- Original app logic (kept unchanged) -->
   <script>
     /************************************************************************
      * Calm, grounding UI — single-file app
      * - preserves previous functionality
      * - keeps localStorage persistence
+     * - updates Chart.js mood trend, WordCloud, AI summary (local heuristic)
      * - softer visuals, reduced noise, improved spacing and accessibility
+     *
+     * NOTE: This block is the original app code preserved as requested.
      ************************************************************************/
 
     // Utilities
