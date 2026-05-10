@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Smart MVP — Overthinking Analytics + Journaling</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Nimmathi — Find peace within.</title>
+
+  <!-- PWA meta -->
+  <meta name="theme-color" content="#4b8f8a"/>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -49,7 +55,7 @@
       padding:24px;
     }
 
-    /* Header */
+    /* Header: updated to Nimmathi and tagline */
     header.top {
       display:flex;
       align-items:center;
@@ -59,7 +65,7 @@
     }
     header.top h1{
       margin:0;
-      font-size:20px;
+      font-size:22px;
       font-weight:700;
       letter-spacing:-0.2px;
       color:#0b1220;
@@ -98,7 +104,7 @@
       background:transparent;border:1px solid var(--soft-border);color:var(--accent);
     }
 
-    /* Layout */
+    /* Layout: left column holds Journal + Emotion stacked; right column Insights */
     .layout {
       display:grid;
       grid-template-columns: 1fr 420px;
@@ -145,12 +151,36 @@
       background:transparent;color:#0f172a;
     }
 
-    .mood-select { display:flex; gap:8px; align-items:center; }
+    /* Emotion card resized: compact, low visual weight */
+    .emotion-card {
+      background: linear-gradient(180deg, #fbfefc, #fff);
+      border: 1px solid rgba(75,143,138,0.06);
+      box-shadow: 0 6px 18px rgba(75,143,138,0.04);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:flex-start;
+    }
+    .emotion-card h2 { margin:0; font-size:15px; color:var(--accent); }
+    .mood-select {
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:flex-start;
+      width:100%;
+    }
+    /* smaller mood buttons for compact emotion card */
     .mood-btn {
-      padding:8px 12px;border-radius:10px;border:1px solid rgba(15,23,23,0.04);background:transparent;cursor:pointer;
-      font-size:16px;line-height:1;display:inline-flex;align-items:center;justify-content:center;
+      padding:8px 10px;border-radius:10px;border:1px solid rgba(15,23,23,0.04);background:transparent;cursor:pointer;
+      font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center;
       transition:all .18s ease;
       color:#334155;
+      width:44px;
+      height:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
     .mood-btn:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(59,106,103,0.04); }
     .mood-btn.active {
@@ -159,6 +189,7 @@
       color:var(--accent);
       box-shadow:0 10px 30px rgba(59,106,103,0.06);
     }
+    .emotion-note { font-size:13px;color:var(--muted); margin-top:6px; }
 
     .actions { display:flex; gap:8px; justify-content:flex-end; margin-left:auto; }
 
@@ -211,46 +242,18 @@
       .card { padding:16px; }
       textarea#entryText { min-height:140px; }
       .layout { gap:14px; }
+      .mood-btn { width:40px; height:40px; font-size:16px; }
     }
-
-    /* --- Authentication overlay styles (calm, low-noise) --- */
-    .auth-wrap {
-      position:fixed;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:linear-gradient(180deg, rgba(15,23,23,0.06), rgba(15,23,23,0.02));
-      z-index:80;
-      padding:20px;
-    }
-    .auth-card {
-      width:100%;
-      max-width:420px;
-      border-radius:14px;
-      background:linear-gradient(180deg,#fff,#fbfdfc);
-      box-shadow:0 18px 40px rgba(15,23,23,0.06);
-      border:1px solid rgba(15,23,23,0.04);
-      padding:20px;
-    }
-    .auth-card h2 { margin:0 0 8px 0; font-size:18px; color:#0b1220; }
-    .auth-card p { margin:0 0 14px 0; color:var(--muted); font-size:14px; }
-    .auth-field { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
-    .auth-field input { padding:10px 12px; border-radius:10px; border:1px solid rgba(15,23,23,0.04); font-size:14px; }
-    .auth-actions { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
-    .auth-note { font-size:13px; color:var(--muted); margin-top:10px; text-align:left; }
-    .auth-footer { margin-top:12px; display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); }
-    .link { color:var(--accent); cursor:pointer; text-decoration:underline; background:transparent; border:0; padding:0; font-size:13px; }
   </style>
 </head>
 <body>
   <!-- Authentication overlay (keeps old code unchanged; overlay gates access) -->
-  <div id="authOverlay" class="auth-wrap" aria-hidden="false" role="dialog" aria-modal="true">
+  <div id="authOverlay" class="auth-wrap" aria-hidden="false" role="dialog" aria-modal="true" style="display:flex">
     <div class="auth-card" role="document" aria-labelledby="authTitle">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div>
-          <h2 id="authTitle">Welcome to Smart MVP</h2>
-          <p>Sign in to keep your journal private and sync across devices</p>
+          <h2 id="authTitle">Welcome to Nimmathi</h2>
+          <p>Find peace within. Sign in to keep your journal private and sync across devices.</p>
         </div>
         <div style="font-size:12px;color:var(--muted)">Phase 1</div>
       </div>
@@ -273,7 +276,7 @@
             <button id="magicLinkBtn" class="btn ghost">Send magic link</button>
           </div>
 
-          <div class="auth-footer">
+          <div class="auth-footer" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
             <div class="small muted">New here?</div>
             <div>
               <button id="showSignUp" class="link">Create account</button>
@@ -312,11 +315,11 @@
   </div>
 
   <!-- Original app UI (kept unchanged) -->
-  <div class="app" role="application" aria-label="Smart MVP Insights and Journaling" id="appRoot" style="display:none">
+  <div class="app" role="application" aria-label="Nimmathi — Find peace within." id="appRoot" style="display:none">
     <header class="top" role="banner">
       <div>
-        <h1>Smart MVP — Overthinking Analytics</h1>
-        <div class="subtitle">Phase 1 · Journaling · Mood Tracking · AI Summaries · Thought Pattern Insights</div>
+        <h1>Nimmathi</h1>
+        <div class="subtitle">Find peace within.</div>
       </div>
 
       <div class="controls" role="region" aria-label="Controls">
@@ -352,17 +355,17 @@
         </div>
       </section>
 
-      <!-- LEFT COLUMN: Emotion (separate card) -->
+      <!-- LEFT COLUMN: Emotion (separate compact card) -->
       <section class="card emotion-card" aria-labelledby="emotionHeading">
         <h2 id="emotionHeading">Emotion</h2>
-        <div class="mood-select" role="radiogroup" aria-label="Mood selection" style="margin-top:10px">
+        <div class="mood-select" role="radiogroup" aria-label="Mood selection" style="margin-top:6px">
           <button class="mood-btn" data-value="1" aria-pressed="false" title="Very low">😞</button>
           <button class="mood-btn" data-value="2" aria-pressed="false" title="Low">😕</button>
           <button class="mood-btn active" data-value="3" aria-pressed="true" title="Neutral">😐</button>
           <button class="mood-btn" data-value="4" aria-pressed="false" title="Good">🙂</button>
           <button class="mood-btn" data-value="5" aria-pressed="false" title="Very good">😄</button>
         </div>
-        <div class="small muted" style="margin-top:8px">Select how you feel before saving your entry</div>
+        <div class="emotion-note">Select how you feel before saving your entry</div>
       </section>
 
       <!-- RIGHT: Insights (unchanged) -->
@@ -599,6 +602,73 @@
       const { data } = await supabase.auth.getUser();
       return data?.user || null;
     };
+
+    /* PWA: create manifest dynamically and register service worker */
+    (function registerPWA(){
+      try {
+        // create a simple manifest blob and attach it
+        const manifest = {
+          name: "Nimmathi",
+          short_name: "Nimmathi",
+          description: "Find peace within.",
+          start_url: ".",
+          display: "standalone",
+          background_color: "#f3f6f5",
+          theme_color: "#4b8f8a",
+          icons: [
+            { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
+            { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        let link = document.querySelector('link[rel="manifest"]');
+        if (!link) {
+          link = document.createElement('link');
+          link.rel = 'manifest';
+          document.head.appendChild(link);
+        }
+        link.href = manifestURL;
+
+        // register a lightweight service worker via blob (so single-file deploy works)
+        const swCode = `
+          const CACHE_NAME = 'nimmathi-cache-v1';
+          const OFFLINE_URL = '.';
+          self.addEventListener('install', event => {
+            self.skipWaiting();
+            event.waitUntil(
+              caches.open(CACHE_NAME).then(cache => cache.addAll(['/']))
+            );
+          });
+          self.addEventListener('activate', event => {
+            event.waitUntil(self.clients.claim());
+          });
+          self.addEventListener('fetch', event => {
+            // network-first for API, cache-first for navigation and assets
+            const req = event.request;
+            if (req.method !== 'GET') return;
+            event.respondWith(
+              fetch(req).then(res => {
+                // optionally cache responses
+                return res;
+              }).catch(() => caches.match(req).then(r => r || caches.match(OFFLINE_URL)))
+            );
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register(swUrl).then(reg => {
+            console.log('Service worker registered for Nimmathi (blob):', reg.scope);
+          }).catch(err => {
+            console.warn('Service worker registration failed:', err);
+          });
+        }
+      } catch (e) {
+        console.warn('PWA registration skipped:', e);
+      }
+    })();
   </script>
 
   <!-- Original app logic (kept unchanged) -->
