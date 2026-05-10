@@ -244,73 +244,108 @@
       .layout { gap:14px; }
       .mood-btn { width:40px; height:40px; font-size:16px; }
     }
+
+    /* --- Redesigned login UI styles (only login UI changed) --- */
+    .auth-wrap {
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, rgba(15,23,23,0.06), rgba(15,23,23,0.02));
+      z-index:80;
+      padding:20px;
+    }
+    .auth-card.new-auth {
+      max-width: 380px;
+      width:100%;
+      border-radius: 16px;
+      background: linear-gradient(180deg,#ffffff,#fbfdfc);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.08);
+      padding: 22px;
+      border: 1px solid rgba(15,23,23,0.04);
+    }
+    .auth-header h2 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .auth-header .tagline {
+      margin: 6px 0 14px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .auth-tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .auth-tab {
+      flex:1;
+      padding:10px;
+      border-radius:10px;
+      border: none;
+      background:#f3f6f5;
+      cursor:pointer;
+      font-size:14px;
+      color:#0b1220;
+    }
+    .auth-tab.active { background:var(--accent); color:#fff; }
+    .auth-form { display:flex; flex-direction:column; gap:12px; }
+    .auth-field input {
+      padding:12px;
+      border-radius:10px;
+      border:1px solid var(--soft-border);
+      font-size:14px;
+      width:100%;
+      box-sizing:border-box;
+    }
+    .btn.full { width:100%; }
+    .auth-divider { text-align:center; margin:14px 0; position:relative; }
+    .auth-divider span { background:#fff; padding:0 8px; color:var(--muted); font-size:13px; }
+    .auth-divider::before { content:""; position:absolute; top:50%; left:0; right:0; height:1px; background:var(--soft-border); }
+    .auth-footer { margin-top:12px; text-align:center; font-size:13px; color:var(--muted); }
   </style>
 </head>
 <body>
-  <!-- Authentication overlay (keeps old code unchanged; overlay gates access) -->
-  <div id="authOverlay" class="auth-wrap" aria-hidden="false" role="dialog" aria-modal="true" style="display:flex">
-    <div class="auth-card" role="document" aria-labelledby="authTitle">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div>
-          <h2 id="authTitle">Welcome to Nimmathi</h2>
-          <p>Find peace within. Sign in to keep your journal private and sync across devices.</p>
-        </div>
-        <div style="font-size:12px;color:var(--muted)">Phase 1</div>
+  <!-- Redesigned Authentication overlay (only this block changed) -->
+  <div id="authOverlay" class="auth-wrap" aria-hidden="false" role="dialog" aria-modal="true">
+    <div class="auth-card new-auth" role="document" aria-labelledby="authTitle">
+      <div class="auth-header">
+        <h2 id="authTitle">Welcome to Nimmathi</h2>
+        <div class="tagline">Find peace within</div>
       </div>
 
-      <div id="authForms">
-        <!-- Sign in form -->
-        <div id="signInForm">
-          <div class="auth-field">
-            <label class="small muted">Email</label>
-            <input id="authEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
-          </div>
-
-          <div class="auth-field">
-            <label class="small muted">Password</label>
-            <input id="authPassword" type="password" placeholder="••••••••" autocomplete="current-password" />
-          </div>
-
-          <div class="auth-actions">
-            <button id="signInBtn" class="btn primary">Sign in</button>
-            <button id="magicLinkBtn" class="btn ghost">Send magic link</button>
-          </div>
-
-          <div class="auth-footer" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
-            <div class="small muted">New here?</div>
-            <div>
-              <button id="showSignUp" class="link">Create account</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sign up form (hidden by default) -->
-        <div id="signUpForm" style="display:none">
-          <div class="auth-field">
-            <label class="small muted">Email</label>
-            <input id="signUpEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
-          </div>
-
-          <div class="auth-field">
-            <label class="small muted">Password</label>
-            <input id="signUpPassword" type="password" placeholder="Choose a secure password" autocomplete="new-password" />
-          </div>
-
-          <div class="auth-actions">
-            <button id="createAccountBtn" class="btn primary">Create account</button>
-            <button id="showSignIn" class="btn ghost">Back</button>
-          </div>
-
-          <div class="auth-note">We use secure authentication. Your entries remain private to you.</div>
-        </div>
+      <div class="auth-tabs" role="tablist" aria-label="Authentication tabs">
+        <button id="tabSignIn" class="auth-tab active" role="tab" aria-selected="true">Sign In</button>
+        <button id="tabSignUp" class="auth-tab" role="tab" aria-selected="false">Sign Up</button>
       </div>
 
-      <div style="margin-top:14px;border-top:1px solid rgba(15,23,23,0.02);padding-top:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="small muted">Or try a quick anonymous session</div>
-          <button id="anonBtn" class="btn ghost">Continue anonymously</button>
+      <!-- Sign In form -->
+      <form id="signInForm" class="auth-form" autocomplete="on">
+        <div class="auth-field">
+          <input id="authEmail" name="email" type="email" placeholder="Email address" autocomplete="email" required />
         </div>
-      </div>
+        <div class="auth-field">
+          <input id="authPassword" name="password" type="password" placeholder="Password" autocomplete="current-password" required />
+        </div>
+        <button id="signInBtn" type="button" class="btn primary full">Sign In</button>
+        <button id="magicLinkBtn" type="button" class="btn ghost full">Send Magic Link</button>
+      </form>
+
+      <!-- Sign Up form -->
+      <form id="signUpForm" class="auth-form" style="display:none" autocomplete="on">
+        <div class="auth-field">
+          <input id="signUpEmail" name="signup_email" type="email" placeholder="Email address" autocomplete="email" required />
+        </div>
+        <div class="auth-field">
+          <input id="signUpPassword" name="signup_password" type="password" placeholder="Choose a password" autocomplete="new-password" required />
+        </div>
+        <button id="createAccountBtn" type="button" class="btn primary full">Create Account</button>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <button id="anonBtn" type="button" class="btn ghost full">Continue Anonymously</button>
+
+      <div class="auth-footer">Your entries remain private and secure</div>
     </div>
   </div>
 
@@ -468,8 +503,8 @@
     const signInBtn = document.getElementById('signInBtn');
     const magicLinkBtn = document.getElementById('magicLinkBtn');
     const createAccountBtn = document.getElementById('createAccountBtn');
-    const showSignUp = document.getElementById('showSignUp');
-    const showSignIn = document.getElementById('showSignIn');
+    const tabSignIn = document.getElementById('tabSignIn');
+    const tabSignUp = document.getElementById('tabSignUp');
     const signUpForm = document.getElementById('signUpForm');
     const signInForm = document.getElementById('signInForm');
     const anonBtn = document.getElementById('anonBtn');
@@ -494,6 +529,26 @@
         appRoot.style.display = 'none';
       }
     }
+
+    // Tab switching logic (Sign In / Sign Up)
+    function showSignInTab() {
+      tabSignIn.classList.add('active');
+      tabSignIn.setAttribute('aria-selected','true');
+      tabSignUp.classList.remove('active');
+      tabSignUp.setAttribute('aria-selected','false');
+      signInForm.style.display = 'flex';
+      signUpForm.style.display = 'none';
+    }
+    function showSignUpTab() {
+      tabSignUp.classList.add('active');
+      tabSignUp.setAttribute('aria-selected','true');
+      tabSignIn.classList.remove('active');
+      tabSignIn.setAttribute('aria-selected','false');
+      signUpForm.style.display = 'flex';
+      signInForm.style.display = 'none';
+    }
+    tabSignIn.addEventListener('click', showSignInTab);
+    tabSignUp.addEventListener('click', showSignUpTab);
 
     // Sign in with email + password
     signInBtn.addEventListener('click', async () => {
@@ -544,16 +599,6 @@
       // Mark localStorage flag and proceed — entries remain local until user upgrades
       localStorage.setItem('smpv_anonymous', '1');
       onSignedIn({ id: 'anonymous', email: null, app_metadata: { anon: true } });
-    });
-
-    // Toggle sign up / sign in forms
-    showSignUp.addEventListener('click', () => {
-      signInForm.style.display = 'none';
-      signUpForm.style.display = 'block';
-    });
-    showSignIn.addEventListener('click', () => {
-      signUpForm.style.display = 'none';
-      signInForm.style.display = 'block';
     });
 
     // Sign out
@@ -644,14 +689,10 @@
             event.waitUntil(self.clients.claim());
           });
           self.addEventListener('fetch', event => {
-            // network-first for API, cache-first for navigation and assets
             const req = event.request;
             if (req.method !== 'GET') return;
             event.respondWith(
-              fetch(req).then(res => {
-                // optionally cache responses
-                return res;
-              }).catch(() => caches.match(req).then(r => r || caches.match(OFFLINE_URL)))
+              fetch(req).then(res => res).catch(() => caches.match(req).then(r => r || caches.match(OFFLINE_URL)))
             );
           });
         `;
